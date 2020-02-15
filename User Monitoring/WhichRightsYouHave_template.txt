@@ -1,0 +1,20 @@
+Base = 14 
+Login = 1 
+User Admin = 16
+Create or Modify user = 32 
+Create or Modify groups = 64
+System Admin Rights = 256
+Public Access = 2048
+
+
+
+
+2399
+2385 (-14 Base)
+337 (-2048 PU)
+81 (-256 SysAdmin)
+17 (-64 CMG)
+1 (-16 UserAdmin)
+0 (-1 Login)
+
+2415 ? 

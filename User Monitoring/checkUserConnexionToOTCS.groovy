@@ -20,6 +20,7 @@ pDate = thisDate.previous()
 tDate = thisDate.format("MM/dd/yyyy")
 pDate = pDate.format('MM/dd/yyyy')
 
+//Vérifier également les connexions de toutes les personnes qui ont les droits d'admin
 
 String myRequest = """
 SELECT 
@@ -34,7 +35,7 @@ WHERE
     (AuditStr = 'Login' OR AuditStr = 'Logout') 
     AND AuditDate >=  '${pDate}' AND AuditDate < '${tDate}'
     AND UserID = '1000'
-    ORDER BY AuditDate DESC;
+    ORDER BY AuditDate ASC;
 """
 
 result = sql.runSQL(myRequest) // execute the sql request
