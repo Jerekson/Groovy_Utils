@@ -20,7 +20,26 @@ pDate = thisDate.previous()
 tDate = thisDate.format("MM/dd/yyyy")
 pDate = pDate.format('MM/dd/yyyy')
 
+// retrieve all sys user account 
+sysUser = []
 
+String sysUserRequest = """
+SELECT
+	k.ID
+FROM KUAF k
+WHERE
+	k.Type = 0 
+	AND k.Deleted = 0
+	AND k.UserPrivileges & 256 > 0;
+"""
+sysUserResult = sql.runSQL(sysUserRequest) // execute the sql request
+
+sysUserResult?.rows?.each { row ->
+    sysUser.add(row.ID)
+}
+sysUser = sysUser.join(", ")
+
+// retrieve all connectionss
 String myRequest = """
 SELECT 
 	AuditStr as Connection,
@@ -33,30 +52,13 @@ FROM
 WHERE
     (AuditStr = 'Login' OR AuditStr = 'Logout') 
     AND AuditDate >=  '${pDate}' AND AuditDate < '${tDate}'
-    AND UserID = '1000'
-    ORDER BY AuditDate DESC;
+    AND UserID IN (${sysUser}) 
+    ORDER BY AuditDate ASC;
 """
-
 result = sql.runSQL(myRequest) // execute the sql request
 
 // fill the log document
 result?.rows?.each { row ->
     logDocument.append("${row?.Date.format("yyyy-MM-dd HH:mm:ss,SSS")} : The User ${row?.Name} ${row?.UserID} has ${row?.Connection} | IP Adress = ${row?.AdresseIP} ${Newline}")
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
