@@ -1,0 +1,183 @@
+/*
+ * Parse OScript Value
+ */
+
+import org.apache.commons.lang3.StringUtils
+
+abstract class OScriptParseData {
+    
+	public scalarExtractor(str){
+		//we need to analyze Assoc String 
+		
+        def outStr = ""
+        def strSep = "'"
+        def inString = false
+        def strId=0
+        def tmpStr
+		
+		// Parsing
+        str.each() { chr ->
+            /*out << chr
+            out << "<br>"*/
+            if (chr == strSep) {
+                //out << "inString -> ${inString}<br>"
+                if (inString) {
+                    // String is over, store it in tab
+                    strTab.put("s${strId}" as String,tmpStr)
+                    outStr += "s${strId}"
+                    inString=false
+                    strId+=1
+                } else {
+                    // New string detected
+                    tmpStr=""
+                    inString=true
+                }
+            } else {
+                if (inString) {
+                    tmpStr += chr
+                } else {
+                    outStr += chr
+                }
+            }
+        }
+        return outStr
+    }
+
+	public analyseBasicString(str){
+		if (str.size() == 0) {
+			log.error("Empty String")
+		} else if (str[0] == "{" || str[0] == "[") {
+			return [
+				"type":"list",
+				"children":OScriptListData.extractListElement(extractListData(str))
+				]
+		} else if (str.size() > "A<1,?,".size() && str.substring(0,"A<1,?,".size()) == "A<1,?,") {
+			return [
+				"type":"assoc",
+				"children":OScriptAssocData.extractAssocElement(extractAssocData(str))
+				]
+		} else if (str[0] == "s") {
+			return [
+				"type":"string",
+				"name":str,
+				"value":strTab[str]
+				]
+		} else if (str[0] == "X") {
+			return [
+				"type":"string",
+				"value":str
+				]
+		} else if (StringUtils.isNumeric(str[0])) {
+			return [
+				"type":"integer",
+				"value":str
+				]
+		} else if (str in ["true","false"]) {
+			return [
+				"type":"boolean",
+				"value":str
+				]
+		} else if (str[0] == "V") {
+			return [
+				"type":"RecArray",
+				"children":OScriptRecArrayData.extractRecArrayData(str)
+				]
+		} else if (str[0] == "?") {
+			return [
+				"type":"QuestionMark",
+				"value":str
+				]
+		} else if (str[0] == "D") {
+			return [
+				"type":"Date",
+				"value":OScriptDateData.dateFromatToJson(str)
+				]
+		} else if (str[0] == "G") {
+			return [
+				"type":"Real",
+				"value":str.substring(1,str.size())
+				]
+		} else if (str[0] == "R") {
+			return [
+				"type":"Record",
+				"children":OScriptRecordData.extractRecordData(str)
+				]
+        } else if (str[0] == "(" && str ==~ /\(\d+,\d+\)/) {
+            // Should be like (x,y)
+            def m = (str =~ /\((\d)+,(\d+)\)/)
+            return [
+                "type":"Coord",
+                "x": m[0][1],
+                "y": m[0][2]
+                ]
+        } else {
+			log.error("Unkown type: ${str}")
+		}
+	}
+
+    public fullObjectToData(data){
+        //Parse each Data -> log.error("Parsing data ${data}")
+        if (data && data.type) {
+            if (data.type == "assoc") {
+                def tmpList = [:]
+                data.children.each() { elt ->
+                    tmpList.put(elt.key, fullObjectToData(elt.value))
+                }
+                return tmpList
+            } else if (data.type == "list") {
+                def tmpList = []
+                data.children.each() { elt ->
+                    tmpList.push(fullObjectToData(elt))
+                }
+                return tmpList
+            } else if (data.type == "string") {
+                return data.value
+            } else if (data.type == "boolean") {
+                return (data.value=="true")
+            } else if (data.type == "integer") {
+                return data.value
+            } else if (data.type == "RecArray") {
+                def tempList = []
+                data.children.value[0].each() { elt -> 
+                    def tmpMap = [:]
+                    elt.each() { eltChild ->
+                        tmpMap.put(eltChild.key, fullObjectToData(eltChild.value))
+                    }
+                    tempList.add(tmpMap)
+                }
+                return tempList
+            } else if (data.type == "QuestionMark") {
+                return data.value
+            } else if (data.type == "Date") {
+                return data.value
+            } else if (data.type == "Real") {
+                return data.value
+            } else if (data.type == "Record") {
+                def tmpMap = [:]
+                data.children.each() { elt ->
+                    //elt.each() { elt2 -> 
+                        tmpMap.put(elt.key, fullObjectToData(elt.value))
+                    //}
+                }
+                return tmpMap
+            } else if (data.type == "Coord") {
+                return [
+                    "x": data.x,
+                    "y": data.y
+                    ]
+            } else {
+                log.error("ERROR: unknown type ${data}")
+            }
+        } else {
+            log.error("ERROR: type not found: ${data}")
+        }
+    }
+	
+	public static parse(data){
+		def strBasicData = scalarExtractor(data)
+		
+		def fullObject = a nalyseBasicString(strBasicData)
+		
+		return fullObjectToData(fullObject)
+	}
+}
