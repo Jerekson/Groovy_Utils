@@ -15,20 +15,9 @@ CheckDocument = {CSNode node, myDoc, index ->
     }
 }
 
- 
-
-
 // List Folder Content in Excel Spreadsheet
-
- 
-
 def myDoc = xlsx.createSpreadsheet("Node Information")
-
- 
-
 def nodes = docman.getNode(256321)
-
- 
 
 myDoc.A1 = "Name"
 myDoc.B1 = "ID"
@@ -38,9 +27,6 @@ myDoc.E1 = "Modified Date"
 myDoc.F1 = "Created Date"
 myDoc.G1 = "Created By"
 myDoc.H1 = "Description"
-
- 
-
 
 nodes?.eachWithIndex{ node, index ->
     
