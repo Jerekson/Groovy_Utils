@@ -1,18 +1,18 @@
 try{
-    def contentServerCategories = docman.getNode(2006 as long)
-    def pathTocategory = "Collaborateur:Informations Collaborateur"
-    def categoryID = docman.getCategory(contentServerCategories, pathTocategory)
-    def attributeSocietyID = categoryID.getAttributeID("Société") as long
-    def attributeAgence = categoryID.getAttributeID("Agence") as long
-    def attributeAgenceID = categoryID.getAttributeID("Agence ID") as long
+    def contentServerCategories = docman.getNode(2006 as long);
+    def pathTocategory = "Collaborateur:Informations Collaborateur";
+    def categoryID = docman.getCategory(contentServerCategories, pathTocategory);
+    def attributeSocietyID = categoryID.getAttributeID("Société") as long;
+    def attributeAgence = categoryID.getAttributeID("Agence") as long;
+    def attributeAgenceID = categoryID.getAttributeID("Agence ID") as long;
 
 
-        def myDoc = xlsx.createSpreadsheet("attribut Société est mal renseigné")
-        File file = docman.getNodeByNickname("society_list").content.content // read properties. all society are in this document. 
-        def listSociety = file.readLines() // read all lines.
-                 
+    def myDoc = xlsx.createSpreadsheet("attribut Société est mal renseigné");
+    File file = docman.getNodeByNickname("society_list").content.content // read properties. all society are in this document.
+    def listSociety = file.readLines(); // read all lines.
 
-                String sqlRequest = """
+
+    String sqlRequest = """
 SELECT DISTINCT(ll.ID), dt.Name, ll.ValStr
 FROM LLAttrData ll INNER JOIN DTree dt ON ll.ID = dt.DataID
 WHERE DefID = ${categoryID.ID}
@@ -22,7 +22,12 @@ AND dt.SubType = 144
 """ 
     listSociety.each(){
         newString = it.replace("'","&#39")
-        sqlRequest += " AND ll.ValStr != '${newString}' "
+        resultCo = sql.runSQL("""
+Select DISTINCT(Name) 
+FROM SGDBF_COMPANIES
+WHERE StructureID = '${newString}'
+""").rows[0].Name
+        sqlRequest += " AND ll.ValStr != '${resultCo}' "
     }
 
     result = sql.runSQL(sqlRequest).rows
@@ -68,6 +73,8 @@ AND dt.SubType = 144
 }catch(e){
     out << "error : ${e.message}"
 }
+
+
 
 
 
