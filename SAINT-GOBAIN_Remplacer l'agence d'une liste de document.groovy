@@ -4,7 +4,7 @@
  * 
 */
 
-// INITIALISATION GENERAL
+// INITIALISATION GENERALE
 def excelTemplate = asCSNode(nickname:"DIGIDOC_SOCIETE_MAL_TAGUES");    //Fichier de données
 
 def contentServerCategories = docman.getNode(2006 as long);
