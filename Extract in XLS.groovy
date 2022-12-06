@@ -1,3 +1,10 @@
+
+// Date
+import java.text.SimpleDateFormat
+Date today = new Date();
+formater = new SimpleDateFormat("'le' dd/MM/yyyy 'à' HH'h'mm");
+newDate = formater.format(today)
+
 // Xls Creation
 def myDoc = xlsx.createSpreadsheet("Node Information")
 
@@ -16,16 +23,17 @@ def sheet = 0 // sheet number
 
 // add rows
 myDoc.newRow(sheet, index, ["it.name", 
-                        "it.ID", 
-                        "it.type",
-                        "it.subtype",
-                        "test",
-                        "test",
-                        "it.createdBy?.displayName",
-                        "it.comment"])
+                    "it.ID", 
+                    "it.type",
+                    "it.subtype",
+                    "test",
+                    "test",
+                    "it.createdBy?.displayName",
+                    "it.comment"])
 
 // Save
-return myDoc.save()
+return myDoc.save() // to dl the Excel
+return myDoc.save(parentRapportNode, "NAME ${newDate}") // return in the
 
 
 
